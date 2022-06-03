@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<title>three.js webgl - PLY</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link type="text/css" rel="stylesheet" href="main.css">
+	</head>
+	<body>
+		<div id="info">
+			<a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> -
+			G3D loader test by <a href="https://github.com/cdiggins" target="_blank" rel="noopener">Christopher Diggins</a>.<br/>
+		</div>
+
+		<!-- Import maps polyfill -->
+		<!-- Remove this when import maps will be widely supported -->
+		<script async src="https://unpkg.com/es-module-shims@1.3.6/dist/es-module-shims.js"></script>
+
+		<script type="importmap">
+			{
+				"imports": {
+					"three": "../build/three.module.js"
+				}
+			}
+		</script>
+
+		<script type="module">
+
+			import * as THREE from 'three';
+
+			import Stats from './jsm/libs/stats.module.js';
+
+            import { G3DLoader } from './jsm/loaders/G3DLoader.js';
+			import { PLYLoader } from './jsm/loaders/PLYLoader.js';
+			import { OBJLoader } from './jsm/loaders/OBJLoader.js';
+			import { STLLoader } from './jsm/loaders/STLLoader.js';
+			import { GLTFLoader } from './jsm/loaders/GLTFLoader.js';
+			import { FBXLoader } from './jsm/loaders/FBXLoader.js';
+			import { ColladaLoader } from './jsm/loaders/ColladaLoader.js';
+
+            import { OrbitControls } from './jsm/controls/OrbitControls.js';
+			let container, stats;
+
+			let camera, cameraTarget, scene, renderer, controls, material;
+
+			init();
+			animate();
+
+            function outputStats(obj) {
+                console.log("Object id = " + obj.uuid + " name = " + obj.name)
+                if (obj.isBufferGeometry) {
+                    console.log("Is a BufferGeometry");
+                    const position = obj.getAttribute('position');
+                    if (!position)
+                        throw new Error("Could not find a position attribute");
+                    const nVerts = position.count;
+                    const nFaces = obj.index ? obj.index.count / 3 : nVerts / 3;
+                    console.log("# vertices = " + nVerts);
+                    console.log("# faces = " + nFaces);
+                    for (let attrName in obj.attributes) {
+                        const attr = obj.getAttribute(attrName);
+                        console.log("has attribute " + attrName + " with a count of " + attr.count);
+                    }
+                }
+                else if (obj.isGeometry)
+                {
+                    console.log("Is a Geometry");
+                    console.log("# vertices = " + obj.vertices.length);
+                    console.log("# faces = " + obj.faces.length);
+                }
+                else 
+                {
+                    console.log("Is neither a Geometry nor a BufferGeometry");
+                }
+            }
+
+            function loadIntoScene(files, index, pos, offset, scale, rotate = false) {        
+                if (index >= files.length)
+                    return;
+                const fileName = files[index];
+                console.log("Loading object from " + fileName);
+                const timer = `Loading file ${fileName} : ${index}`;
+                console.time(timer);
+
+                function updateMesh(mesh) {
+                    //outputStats(mesh.geometry);
+                    mesh.position.x = pos.x;
+                    mesh.position.y = pos.y;
+                    mesh.position.z = pos.z;
+                    mesh.scale.multiplyScalar( scale );
+                    //mesh.castShadow = true;
+                    //mesh.receiveShadow = true;
+
+                    if (rotate)
+                    {
+                        mesh.rotation.x = - Math.PI / 2
+                    }
+                }
+
+                function loadObject(geometry) {
+                    console.timeEnd(timer);
+
+                    if (geometry.scene) {
+                        geometry = geometry.scene;
+                    }
+
+                    let mesh;
+                    if (geometry.isBufferGeometry)
+                    {
+                        //geometry.computeVertexNormals();
+                        mesh = new THREE.Mesh( geometry, material );
+                        updateMesh(mesh);
+                        scene.add(mesh);
+                    }
+                    else
+                    if (geometry.isGroup)
+                    {
+                        for (let m of geometry.children) {
+                            updateMesh(m);
+                        }
+                        scene.add(geometry);
+                    }
+                   
+                    // Next file
+                    loadIntoScene(files, index + 1, pos.add(offset), offset, scale);
+                }
+
+                const extPos = fileName.lastIndexOf(".");
+                const ext = fileName.slice(extPos + 1).toLowerCase();
+
+                switch (ext) {
+                    case "fbx": 
+                        (new FBXLoader()).load(fileName, loadObject);
+                        break;                    
+                    case "dae":  
+                        (new ColladaLoader()).load(fileName, loadObject);
+                        return; 
+                    case "vim":
+                    case "g3d":
+                        (new G3DLoader()).load(fileName, loadObject);
+                        return;
+                    case "glb": 
+                    case "gltf": 
+                        (new GLTFLoader()).load(fileName, loadObject);
+                        break;                    
+                    case "gcode": {
+                        (new GCodeLoader()).load(fileName, loadObject);
+                        break;
+                    }
+                    case "obj": {
+                        (new OBJLoader()).load(fileName, loadObject);                        
+                        break;
+                    }
+                    case "ply": {
+                        (new PLYLoader()).load(fileName, loadObject);
+                        break;
+                    }
+                    case "stl": {
+                        (new STLLoader()).load(fileName, loadObject);
+                        break;
+                    }
+                    default:
+                        throw new Error("Unrecognized file type extension '" + ext + "' for file " + fileName);            
+                }
+            }
+
+			function init() {
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				camera = new THREE.PerspectiveCamera( 35, window.innerWidth / window.innerHeight, 1, 15 );
+				//camera.position.set( 3, 2, 640 );
+				//cameraTarget = new THREE.Vector3( 0, -0.1, 0 );
+
+                camera.position.set( 3, 0.15, 3 );
+                cameraTarget = new THREE.Vector3( 0, - 0.1, 0 );
+
+				scene = new THREE.Scene();
+				scene.background = new THREE.Color( 0x72645b );
+				//scene.fog = new THREE.Fog( 0x72645b, 2, 15 );
+
+				// Ground
+
+				const plane = new THREE.Mesh(
+					new THREE.PlaneGeometry( 40, 40 ),
+					new THREE.MeshPhongMaterial( { color: 0x999999, specular: 0x101010 } )
+				);
+				plane.rotation.x = - Math.PI / 2;
+				plane.position.y = 0;
+				scene.add( plane );
+
+				plane.receiveShadow = true;
+
+                material = new THREE.MeshStandardMaterial( { color: 0x0055ff, flatShading: true } );
+
+                // PLY file                
+                const pos = new THREE.Vector3(-0.4, +0.02, -0.2);
+				//loadIntoScene( './models/ply/binary/Lucy100k.ply', new THREE.Vector3(-0.2, +0.02, -0.2), 0.0006); 
+				//loadIntoScene( './models/ply/binary/Lucy100k.ply', new THREE.Vector3(0.2, +0.02, -0.2), 0.0006); 
+				loadIntoScene( [
+                    //'./models/g3d/dragon_vrip.ply', 
+                    //'./models/g3d/dragon_vrip.obj', 
+                    //'./models/g3d/dragon_vrip.glb', 
+                    //'./models/g3d/dragon_vrip.glb.g3d', 
+                    './models/g3d/4808.vim',
+                    //'./models/g3d/dragon_vrip.gltf', 
+                    //'./models/g3d/dragon_vrip.stl',
+                    ],
+                    0, pos, new THREE.Vector3(0.4, 0, 0), 0.005, true); 
+
+                 // Create orbit controls
+                //controls = new OrbitControls( camera, container );
+                //controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+                //controls.dampingFactor = 0.25;
+                //controls.autoRotate = settings.camera.autoRotate;
+                //controls.autoRotateSpeed = settings.camera.rotateSpeed;       
+
+				// Lights
+
+				scene.add( new THREE.HemisphereLight( 0x443333, 0x111122 ) );
+
+				addShadowedLight( 1, 1, 1, 0xffffff, 1.35 );
+				addShadowedLight( 0.5, 1, - 1, 0xffaa00, 1 );
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				renderer.outputEncoding = THREE.sRGBEncoding;
+
+				renderer.shadowMap.enabled = true;
+
+				container.appendChild( renderer.domElement );
+
+				// stats
+
+				stats = new Stats();
+				container.appendChild( stats.dom );
+
+				// resize
+
+				window.addEventListener( 'resize', onWindowResize );
+
+			}
+
+			function addShadowedLight( x, y, z, color, intensity ) {
+
+				const directionalLight = new THREE.DirectionalLight( color, intensity );
+				directionalLight.position.set( x, y, z );
+				scene.add( directionalLight );
+
+				directionalLight.castShadow = true;
+
+				const d = 1;
+				directionalLight.shadow.camera.left = - d;
+				directionalLight.shadow.camera.right = d;
+				directionalLight.shadow.camera.top = d;
+				directionalLight.shadow.camera.bottom = - d;
+
+				directionalLight.shadow.camera.near = 1;
+				directionalLight.shadow.camera.far = 4;
+
+				directionalLight.shadow.mapSize.width = 1024;
+				directionalLight.shadow.mapSize.height = 1024;
+
+				directionalLight.shadow.bias = - 0.001;
+
+			}
+
+			function onWindowResize() {
+
+				camera.aspect = window.innerWidth / window.innerHeight;
+				camera.updateProjectionMatrix();
+
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+			}
+
+			function animate() {
+
+				requestAnimationFrame( animate );
+                //controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+				render();
+				stats.update();
+
+			}
+
+			function render() {
+
+				const timer = Date.now() * 0.0005;
+
+				camera.position.x = Math.sin( timer ) * 2.5;
+				camera.position.z = Math.cos( timer ) * 2.5;
+				camera.lookAt( cameraTarget );
+
+				renderer.render( scene, camera );
+
+			}
+
+		</script>
+	</body>
+</html>

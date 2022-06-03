@@ -1,18 +1,26 @@
-# G3D
 
-[<img src="https://img.shields.io/nuget/v/Vim.G3d.svg">](https://www.nuget.org/packages/Vim.G3d) 
 
-G3D is a simple, efficient, generic binary format for storing and transmitting geometry. The G3D format
-is designed to be used either as a serialization format or as an in-memory data structure.
+<center>
+ <img src="./img/Transparent Logo Cropped.png" width=100>
+<h1>G3D</h1>
+</center>
 
-G3D can represent triangular meshes, quadrilateral meshes, polygonal meshes, point clouds, and line segments.  
-It can be easily and efficiently deserialized and rendered in different languages and on different platforms.
 
-The G3D format can contain a superset of geometry attributes found in most common geometry formats, 
-including formats such as FBX, glTF, OBJ, PLY, and in memory data structures used in popular 3D APIs, like 
-Unity, Three.JS, Assimp, and 3dsMax.
+G3D is a *data format* for the simple and efficient representation of static mesh geometry. 
 
-G3D is maintained by [VIMaec LLC](https://vimaec.com) and is licensed under the terms of the MIT License.
+# Contents of this Repository 
+
+This repo contains C++, C#, and JavaScript implementations of G3D importers and exporters, and a number of test models and test projects.  
+
+# G3D versus glTF
+
+The glTF is a more appropriate format for serializing complex animated 3D scenes such as those with camera, lights, shaders, bones, and skinning information.  
+
+G3D is more appropriate for single mesh data, or static scenes with lots of instancing, such as those create by engineering and architectural CAD and BIM software. 
+
+The G3D format is generally the same size as a binary glTF file (.GLB). The G3D Three.JS loader can be 2x or more faster than the GLTF loader for GLB files. 
+
+It is much simpler to write efficient and conformant loaders and exporters of G3D than for glTF, given the reduced scope of the design and a more opinionated binary layout.   
 
 # Repository Structure and Projects
 
@@ -50,14 +58,14 @@ This attribute descriptor string is the name of the buffer.
 
 G3D is organized as a collection of attribute buffers. Each attributes describe what part of the incoming geometry they are associated with:
 
-* vertex     // vertex data
-* corner    // face-vertex data
-* face      // per polygon data
-* edge      // per half-edge data 
-* mesh     // A continuous group of submeshes
-* submesh  // polygonal group - assumes a contiguous sequence of indices in the index buffer
-* instance // objects which may have a related mesh, matrix and more.
-* all		// whole object data - for example face-size of 4 with whole object indicates a quad mesh
+* vertex - per point data
+* corner - per face-vertex data 
+* face - per polygon data
+* edge - per directed edge (aka half-edge) data 
+* mesh - per mesh data 
+* submesh - pre submesh data  
+* instance - per object data (e.g. world transform matrices)
+* all -  whole object data (e.g. face-size of 4 with whole object indicates a quad mesh)
 
 ### Semantic
 
