@@ -1,6 +1,8 @@
 /**
  * source inspiration:
- * https://gist.github.com/donmccurdy/9f094575c1f1a48a2ddda51 3898f6496
+ * https://gist.github.com/donmccurdy/9f094575c1f1a48a2ddda513898f6496
+ * https://github.com/Scandy-co/vr-playground/blob/master/asset-mgmt/assetConverter.js
+ * 
  */
 const fs = require("fs")
 const path = require("path")
@@ -78,14 +80,6 @@ require("three/examples/js/exporters/OBJExporter")
 require("three/examples/js/exporters/PLYExporter")
 require("three/examples/js/exporters/GLTFExporter")
 
-// Custom-built version of DRACOLoader, for Node.js.
-const NodeDRACOLoader = require("./NodeDRACOLoader.js")
-
-// GLTFLoader prefetches the decoder module, when Draco is needed, to speed up
-// parsing later. This isn't necessary for our custom decoder, so set the
-// method to a no-op.
-THREE.DRACOLoader.getDecoderModule = () => {}
-
 const VALID_EXTS = ["stl", "obj", "ply", "glb", "gltf"]
 
 const optionDefinitions = [
@@ -94,13 +88,6 @@ const optionDefinitions = [
   { name: "output", alias: "o", type: String },
   { name: "texture", type: String, help: "Texture map file" },
   { name: "material", type: String, help: "Material file for .obj files" },
-  {
-    name: "draco",
-    alias: "c",
-    help: "Draco compression GLTF/GLB. Defaults to 0 (off)",
-    type: Number,
-    default: 0
-  }
 ]
 
 const fileUtils = require("./fileUtils")
@@ -138,9 +125,7 @@ const loadMesh = async input_path => {
     console.log("processed to gltf from gltf-pipeline")
 
     loader = new THREE.GLTFLoader()
-    // Patch the DracoLoader for our node use case
-    loader.setDRACOLoader(new NodeDRACOLoader())
-
+  
     const prom = new Promise((resolve, reject) => {
       loader.parse(
         gltf,
