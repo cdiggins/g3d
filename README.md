@@ -13,7 +13,7 @@ This repo contains C++, C#, and JavaScript implementations of G3D importers and 
 
 # G3D versus FBX
 
-FBX is an older closed format that requires an SDK to read and write reliably, making it incompatible with web clients. It was designed for the moving 3D assets, particularly those with animations, between art tools and game engines. It was not designed as a "render ready" format or as a format that can be easily serialized (loade) at run-time. 
+FBX is an older closed format that requires an SDK to read and write reliably, making it incompatible with web clients. It was designed for the moving 3D assets, particularly those with animations, between art tools and game engines. It was not designed as a "render ready" format or as a format that can be easily serialized at run-time. 
 
 G3D on the other hand is an open-specification that is optimized for fast loading of static geometry onto the GPU on any device. We provide open implementations of G3D in C#, JavaScript, and C++. 
 
