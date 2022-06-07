@@ -1,16 +1,23 @@
 
 
-<center>
+<p align="center">
  <img src="./img/Transparent Logo Cropped.png" width=100>
-<h1>G3D</h1>
-</center>
+</p>
+<h1 align="center">G3D</h1>
 
-
-G3D is a *data format* for the simple and efficient representation of static mesh geometry. 
+G3D is an extensible data format for the simple and efficient representation and serialization of instanced static mesh geometry. 
 
 # Contents of this Repository 
 
 This repo contains C++, C#, and JavaScript implementations of G3D importers and exporters, and a number of test models and test projects.  
+
+# G3D versus FBX
+
+FBX is an older closed format that requires an SDK to read and write reliably, making it incompatible with web clients. It was designed for the moving 3D assets, particularly those with animations, between art tools and game engines. It was not designed as a "render ready" format or as a format that can be easily serialized (loade) at run-time. 
+
+G3D on the other hand is an open-specification that is optimized for fast loading of static geometry onto the GPU on any device. We provide open implementations of G3D in C#, JavaScript, and C++. 
+
+Reading a G3D file is an order of magnitude faster than FBX files. 
 
 # G3D versus glTF
 
@@ -20,7 +27,7 @@ G3D is more appropriate for single mesh data, or static scenes with lots of inst
 
 The G3D format is generally the same size as a binary glTF file (.GLB). The G3D Three.JS loader can be 2x or more faster than the GLTF loader for GLB files. 
 
-It is much simpler to write efficient and conformant loaders and exporters of G3D than for glTF, given the reduced scope of the design and a more opinionated binary layout.   
+It is much simpler to write efficient and conformant loaders and exporters of G3D than for glTF, given the reduced scope of the design and a more opinionated binary layout.     
 
 # Repository Structure and Projects
 
