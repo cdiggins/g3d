@@ -129,7 +129,7 @@ While there is no explicit string type, one could encode string data by using a 
 
 # Recommended reading:
 
-* [VIM AEC blog post about using G3D with Unity](https://www.vimaec.com/the-g3d-geometry-exchange-format/)
+* [VIM AEC blog post about using G3D with Unity](https://www.vimaec.com/blog/the-g3d-geometry-exchange-format/)
 * [Hackernoon article about BFast](https://hackernoon.com/bfast-a-data-format-for-serializing-named-binary-buffers-243p130uw)
 * http://assimp.sourceforge.net/lib_html/structai_mesh.html
 * http://help.autodesk.com/view/FBX/2017/ENU/?guid=__files_GUID_5EDC0280_E000_4B0B_88DF_5D215A589D5E_htm
